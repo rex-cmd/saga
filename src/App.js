@@ -1,25 +1,58 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { Switch, Route, Redirect } from "react-router-dom";
+import { connect } from "react-redux";
+import { createStructuredSelector } from "reselect";
 
-function App() {
+import "./App.css";
+
+import HomePage from "./pages/homepage/homepage.component";
+import ShopPage from "./pages/shop/shop.component";
+import SignInAndSignUpPage from "./pages/sign-in-and-sign-up/sign-in-and-sign-up.component";
+import CheckoutPage from "./pages/checkout/checkout.component";
+
+import Header from "./components/header/header.component";
+// eslint-disable-next-line
+import { auth, createUserProfileDocument } from "./firebase/firebase.utils";
+
+import { selectCurrentUser } from "./redux/user/user.selectors";
+import { checkUserSession } from "./redux/user/user.actions";
+import { CollectionsOverviewContainer } from "./components/collections-overview/collections-overview.styles";
+import { useEffect } from "react";
+
+const App = ({ checkUserSession, currentUser }) => {
+  //unsubscribeFromAuth = null;
+
+  useEffect(() => {
+    checkUserSession();
+  }, [checkUserSession]);
+
+  // componentWillUnmount() {
+  //   this.unsubscribeFromAuth();
+  // }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <Header />
+      <Switch>
+        <Route exact path="/" component={HomePage} />
+        <Route path="/shop" component={ShopPage} />
+        <Route exact path="/checkout" component={CheckoutPage} />
+        <Route
+          exact
+          path="/signin"
+          render={() =>
+            currentUser ? <Redirect to="/" /> : <SignInAndSignUpPage />
+          }
+        />
+      </Switch>
     </div>
   );
-}
+};
 
-export default App;
+const mapStateToProps = createStructuredSelector({
+  currentUser: selectCurrentUser,
+});
+const mapDispatchToProps = (dispatch) => ({
+  checkUserSession: () => dispatch(checkUserSession()),
+});
+export default connect(mapStateToProps, mapDispatchToProps)(App);
